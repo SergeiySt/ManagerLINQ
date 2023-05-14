@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Manager_Linq"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="Список користувачів" Height="485" Width="801" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="/community_users_12977.ico">
+        Title="Список користувачів" Height="462" Width="801" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="/community_users_12977.ico">
     <Grid>
         <DataGrid x:Name="dataGridUsers" Height="198" Margin="10,10,10,0" Width="NaN" AutoGenerateColumns="False" VerticalAlignment="Top" SelectionChanged="dataGridUsers_SelectionChanged">
             <DataGrid.Columns>
@@ -32,7 +32,9 @@
         <TextBox x:Name="textBoxPhone" Margin="125,326,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <DatePicker x:Name="datePicker1" Margin="125,350,11,0" VerticalAlignment="Top" />
         <Button x:Name="buttonAdd" Content="Додати" HorizontalAlignment="Left" Margin="125,393,0,0" VerticalAlignment="Top" Width="112" Height="20" Click="buttonAdd_Click"/>
-        <Button x:Name="buttonUpdate" Content="Змінити" HorizontalAlignment="Left" Margin="369,393,0,0" VerticalAlignment="Top" Width="112" Click="buttonUpdate_Click"/>
-        <Button x:Name="buttonDelete" Content="Видалити" HorizontalAlignment="Left" Margin="622,393,0,0" VerticalAlignment="Top" Width="112" Click="buttonDelete_Click"/>
+        <Button x:Name="buttonUpdate" Content="Змінити" HorizontalAlignment="Left" Margin="269,393,0,0" VerticalAlignment="Top" Width="112" Click="buttonUpdate_Click"/>
+        <Button x:Name="buttonDelete" Content="Видалити" Margin="678,393,11,0" VerticalAlignment="Top" Click="buttonDelete_Click"/>
+        <Button x:Name="buttonFind" Content="Пошук" HorizontalAlignment="Left" Margin="406,393,0,0" VerticalAlignment="Top" Width="102" Click="buttonFind_Click"/>
+        <Button x:Name="buttonClear" Content="Очистити пошук" HorizontalAlignment="Left" Margin="536,393,0,0" VerticalAlignment="Top" Width="117" Click="buttonClear_Click"/>
     </Grid>
 </Window>
