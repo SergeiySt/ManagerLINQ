@@ -43,11 +43,17 @@ namespace Manager_Linq
 
             dataGridUsers.ItemsSource = users;
         }
-
         private bool IsValidEmail(string email)
         {
-            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, emailPattern);
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private bool CanAddPhone()
@@ -82,9 +88,13 @@ namespace Manager_Linq
                 return;
             }
 
-          
+            if (!IsValidEmail(textBoxEmail.Text))
+            {
+                MessageBox.Show("Введіть правильний email", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            var existingUser = db.GetTable<Model.Users>().FirstOrDefault(u => u.LSurname == textBoxSurName.Text 
+            var existingUser = db.GetTable<Model.Users>().FirstOrDefault(u => u.LSurname == textBoxSurName.Text
             && u.LName == textBoxName.Text && u.LPobatkovi == textBoxPobatkovi.Text);
 
             if (existingUser != null)
@@ -115,25 +125,49 @@ namespace Manager_Linq
             dataGridUsers.ItemsSource = db.GetTable<Model.Users>().ToList();
 
             MessageBox.Show("Користувач успішно доданий", "Примітка", MessageBoxButton.OK, MessageBoxImage.Information);
+            ClearTextBox();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-           
+
         }
 
         private void buttonDelete_Click(object sender, RoutedEventArgs e)
         {
+            if (dataGridUsers.SelectedItem != null)
+            {
+                Model.Users selectedUsers = dataGridUsers.SelectedItem as Model.Users;
+                if (selectedUsers != null)
+                {
+                    using (var db = new DataContext(connectionString))
+                    {
+                        var user = db.GetTable<Model.Users>().FirstOrDefault(u => u.id_users == selectedUsers.id_users);
+                        if (user != null)
+                        {
+                            db.GetTable<Model.Users>().DeleteOnSubmit(user);
+                            db.SubmitChanges();
 
+                            MessageBox.Show("Користувач успішно видалено", "Примітка", MessageBoxButton.OK, MessageBoxImage.Information);
+                            dataGridUsers.ItemsSource = db.GetTable<Model.Users>().ToList();
+                            ClearTextBox();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Неможливо видалити запис. Перевірте, чи вибрано запис в таблиці.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void dataGridUsers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(dataGridUsers.SelectedItem != null)
+            if (dataGridUsers.SelectedItem != null)
             {
                 Model.Users selectedUsers = dataGridUsers.SelectedItem as Model.Users;
 
-                if(selectedUsers != null) 
+                if (selectedUsers != null)
                 {
                     textBoxSurName.Text = selectedUsers.LSurname;
                     textBoxName.Text = selectedUsers.LName;
@@ -155,39 +189,80 @@ namespace Manager_Linq
 
         private void buttonUpdate_Click(object sender, RoutedEventArgs e)
         {
-            if(dataGridUsers.SelectedItem != null)
+            if (dataGridUsers.SelectedItem != null)
             {
                 Model.Users selectedUsers = dataGridUsers.SelectedItem as Model.Users;
-                if(selectedUsers != null)
+                if (selectedUsers != null)
                 {
-                    if (!string.IsNullOrEmpty(textBoxSurName.Text) && !string.IsNullOrEmpty(textBoxName.Text) &&
-               !string.IsNullOrEmpty(textBoxPobatkovi.Text) && !string.IsNullOrEmpty(textBoxEmail.Text) &&
-               int.TryParse(textBoxPhone.Text, out int phone) && datePicker1.SelectedDate != null)
+                    using (var db = new DataContext(connectionString))
                     {
-                        selectedUsers.LSurname = textBoxSurName.Text;
-                        selectedUsers.LName = textBoxName.Text;
-                        selectedUsers.LPobatkovi = textBoxPobatkovi.Text;
-                        selectedUsers.LEmail = textBoxEmail.Text;
-                        selectedUsers.LPhone = phone;
-                        selectedUsers.LDateBrith = (DateTime)datePicker1.SelectedDate;
-                        using (var db = new DataContext(connectionString))
+                        if (!string.IsNullOrEmpty(textBoxSurName.Text) && !string.IsNullOrEmpty(textBoxName.Text) &&
+                            !string.IsNullOrEmpty(textBoxPobatkovi.Text) && !string.IsNullOrEmpty(textBoxEmail.Text) &&
+                            int.TryParse(textBoxPhone.Text, out int phone) && datePicker1.SelectedDate != null)
                         {
-                            db.SubmitChanges();
-                        }
-                        dataGridUsers.ItemsSource = db.GetTable<Model.Users>().ToList();
+                            var user = db.GetTable<Model.Users>().FirstOrDefault(u => u.id_users == selectedUsers.id_users);
+                            if (user != null)
+                            {
+                                user.LSurname = textBoxSurName.Text;
+                                user.LName = textBoxName.Text;
+                                user.LPobatkovi = textBoxPobatkovi.Text;
+                                user.LEmail = textBoxEmail.Text;
+                                user.LPhone = phone;
+                                user.LDateBrith = datePicker1.SelectedDate.Value;
+                                db.SubmitChanges();
 
-                        MessageBox.Show("Користувач успішно змінено", "Примітка", MessageBoxButton.OK, MessageBoxImage.Information);
+                                dataGridUsers.ItemsSource = db.GetTable<Model.Users>().ToList();
+
+                                MessageBox.Show("Користувач успішно змінено", "Примітка", MessageBoxButton.OK, MessageBoxImage.Information);
+                                ClearTextBox();
+                            }
+                        }
                     }
-                    else
-                    {
-                        MessageBox.Show("Неможливо оновити запис. Перевірте, чи всі поля заповнені та вибрано запис в таблиці.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
+                } 
             }
             else
             {
-               MessageBox.Show("Неможливо оновити запис. Перевірте, чи всі поля заповнені та вибрано запис в таблиці.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Не вдалося отримати вибраний запис. Перевірте, чи вибрано запис в таблиці.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        public void ClearTextBox()
+        {
+            textBoxSurName.Text = "";
+            textBoxName.Text = "";
+            textBoxPobatkovi.Text = "";
+            textBoxEmail.Text = "";
+            textBoxPhone.Text = "";
+            datePicker1.Text = "";
+        }
+
+        private void buttonFind_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (string.IsNullOrEmpty(textBoxName.Text) && string.IsNullOrEmpty(textBoxSurName.Text)) 
+            {
+                MessageBox.Show("Для пошуку введіть прізвище та ім'я користувача", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            using (var db = new DataContext(connectionString))
+            {
+                string searchQuery = textBoxSurName.Text;
+                string searchName = textBoxName.Text;
+
+                var users = db.GetTable<Model.Users>()
+                              .Where(u => u.LSurname.Contains(searchQuery) && u.LName.Contains(searchName))
+                              .ToList();
+
+                dataGridUsers.ItemsSource = users;
+            }
+        }
+
+        private void buttonClear_Click(object sender, RoutedEventArgs e)
+        {
+            var users = db.GetTable<Model.Users>().ToList();
+
+            dataGridUsers.ItemsSource = users;
+            ClearTextBox();
         }
     }
 }
